@@ -1,8 +1,12 @@
+extern crate nalgebra;
+
 #[macro_use]
 extern crate vulkano;
 extern crate vulkano_shaders;
 extern crate vulkano_win;
 extern crate winit;
+
+use nalgebra::{Matrix4, Vector3};
 
 use vulkano::buffer::{BufferUsage,CpuAccessibleBuffer};
 use vulkano::command_buffer::{AutoCommandBufferBuilder, DynamicState};
@@ -20,6 +24,13 @@ use vulkano_win::VkSurfaceBuild;
 use winit::{EventsLoop, Window, WindowBuilder, Event, WindowEvent};
 
 use std::sync::Arc;
+use std::time::Instant;
+
+use camera::Camera;
+
+mod camera;
+mod frustum;
+mod transform;
 
 fn main() {
     let instance = {
@@ -114,11 +125,24 @@ fn main() {
     let mut dynamic_state = DynamicState { line_width: None, viewports: None, scissors: None };
     let mut framebuffers = window_size_dependent_setup(&images, render_pass.clone(), &mut dynamic_state);
 
+    let mut camera = Camera::new();
+    camera
+        .set_field_of_view(45.0)
+        .translate_by(&Vector3::new(0.0, 0.0, -2.0));
+
     let mut window_closed = false;
     let mut recreate_swapchain = false;
     let mut previous_frame_end = Box::new(sync::now(device.clone())) as Box<GpuFuture>;
 
+    let mut prev_time = Instant::now();
     while !window_closed {
+        let now = Instant::now();
+        let dt = {
+            let elapsed = now.duration_since(prev_time);
+            elapsed.as_secs() as f32 + elapsed.subsec_nanos() as f32 * 1e-9
+        };
+        prev_time = now;
+
         previous_frame_end.cleanup_finished();
 
         if recreate_swapchain {
@@ -143,11 +167,24 @@ fn main() {
             Err(err) => panic!("{:?}", err)
         };
 
-        let clear_values = vec!([0.0, 0.0, 1.0, 1.0].into());
+        let aspect_ratio = {
+            let dimensions = swapchain.dimensions();
+            dimensions[0] as f32 / dimensions[1] as f32
+        };
+
+        camera.yaw_by(dt * 0.5);
+        let frustum = camera.frustum(aspect_ratio);
+
+        let push_constants = vs::ty::PushConstants {
+            view_projection: Into::<[[f32; 4]; 4]>::into(frustum.view_projection),
+            model: Into::<[[f32; 4]; 4]>::into(Matrix4::identity())
+        };
+
+        let clear_values = vec!([0.0, 0.0, 0.0, 1.0].into());
         let command_buffer = AutoCommandBufferBuilder::primary_one_time_submit(device.clone(), queue.family()).unwrap()
             .begin_render_pass(framebuffers[image_num].clone(), false, clear_values)
             .unwrap()
-            .draw(pipeline.clone(), &dynamic_state, vertex_buffer.clone(), (), ())
+            .draw(pipeline.clone(), &dynamic_state, vertex_buffer.clone(), (), push_constants)
             .unwrap()
             .end_render_pass()
             .unwrap()
