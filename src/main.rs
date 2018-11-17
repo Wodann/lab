@@ -6,7 +6,7 @@ extern crate vulkano_shaders;
 extern crate vulkano_win;
 extern crate winit;
 
-use nalgebra::{Matrix4, Vector3};
+use nalgebra::{Matrix4, Vector2, Vector3};
 
 use vulkano::buffer::{BufferUsage,CpuAccessibleBuffer};
 use vulkano::command_buffer::{AutoCommandBufferBuilder, DynamicState};
@@ -23,13 +23,15 @@ use vulkano::sync;
 use vulkano_win::VkSurfaceBuild;
 use winit::{EventsLoop, Window, WindowBuilder, Event, WindowEvent};
 
-use std::sync::Arc;
+use std::sync::{Arc, mpsc};
 use std::time::Instant;
 
 use camera::Camera;
+use input_handler::{ElementState, InputEvent, InputEventDesc, InputHandler, KeyboardInput, ModifiersState, MouseInput, VirtualKeyCode};
 
 mod camera;
 mod frustum;
+mod input_handler;
 mod transform;
 
 fn main() {
@@ -44,6 +46,20 @@ fn main() {
     let mut event_loop = EventsLoop::new();
     let surface = WindowBuilder::new().build_vk_surface(&event_loop, instance.clone()).unwrap();
     let window = surface.window();
+
+    let (tx, rx) = mpsc::channel();
+
+    let mut input_handler = InputHandler::new();
+    input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
+        ElementState::Pressed,
+        VirtualKeyCode::W,
+        ModifiersState::default()
+    )), tx.clone());
+    input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
+        ElementState::Pressed,
+        VirtualKeyCode::A,
+        ModifiersState::default()
+    )), tx.clone());
 
     let queue_family = physical.queue_families().find(|&q| {
         q.supports_graphics() && surface.is_supported(q).unwrap_or(false)
@@ -214,9 +230,35 @@ fn main() {
             match ev {
                 Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => window_closed = true,
                 Event::WindowEvent { event: WindowEvent::Resized(_), .. } => recreate_swapchain = true,
+                Event::WindowEvent { event: WindowEvent::CursorMoved { position: winit::dpi::LogicalPosition { x, y }, .. }, .. } => {
+                    input_handler.handle_mouse_move(Vector2::new(x as f32, y as f32));
+                },
+                Event::WindowEvent { event: WindowEvent::KeyboardInput { input, .. }, .. } => {
+                    if let Some(key) = input.virtual_keycode {
+                        input_handler.handle_keyboard_input(KeyboardInput::new(input.state, key, input.modifiers));
+                    }
+                }
+                Event::WindowEvent { event: WindowEvent::MouseInput { state, button, modifiers, .. }, .. } => {
+                    input_handler.handle_mouse_input(MouseInput::new(state, button, modifiers));
+                },
                 _ => ()
             }
         });
+
+        if let Ok(event) = rx.try_recv() {
+            match event {
+                InputEvent::KeyboardInput(KeyboardInput { state, key, ..}) => {
+                    println!("{:?} was {}", key, {
+                        if state == ElementState::Pressed {
+                            "pressed"
+                        } else {
+                            "released"
+                        }
+                    });
+                },
+                _ => ()
+            }
+        }
     }
 }
 
