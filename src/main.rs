@@ -27,7 +27,7 @@ use std::sync::{Arc, mpsc};
 use std::time::Instant;
 
 use camera::Camera;
-use input_handler::{ElementState, InputEvent, InputEventDesc, InputHandler, KeyboardInput, ModifiersState, MouseInput, VirtualKeyCode};
+use input_handler::{ElementState, InputEvent, InputEventDesc, InputHandler, KeyboardInput, ModifiersState, MouseButton, MouseInput, VirtualKeyCode};
 
 mod camera;
 mod frustum;
@@ -56,8 +56,18 @@ fn main() {
         ModifiersState::default()
     )), tx.clone());
     input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
-        ElementState::Pressed,
+        ElementState::Released,
         VirtualKeyCode::A,
+        ModifiersState::default()
+    )), tx.clone());
+    input_handler.subscribe_to_input(InputEventDesc::MouseInput(MouseInput::new(
+        ElementState::Pressed,
+        MouseButton::Left,
+        ModifiersState::default()
+    )), tx.clone());
+    input_handler.subscribe_to_input(InputEventDesc::MouseInput(MouseInput::new(
+        ElementState::Released,
+        MouseButton::Left,
         ModifiersState::default()
     )), tx.clone());
 
@@ -249,6 +259,15 @@ fn main() {
             match event {
                 InputEvent::KeyboardInput(KeyboardInput { state, key, ..}) => {
                     println!("{:?} was {}", key, {
+                        if state == ElementState::Pressed {
+                            "pressed"
+                        } else {
+                            "released"
+                        }
+                    });
+                },
+                InputEvent::MouseInput(MouseInput { state, button, .. }) => {
+                    println!("{:?} was {}", button, {
                         if state == ElementState::Pressed {
                             "pressed"
                         } else {
