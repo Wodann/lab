@@ -135,7 +135,7 @@ fn main() {
     let mut camera = Camera::new();
     camera
         .set_field_of_view(45.0)
-        .translate_by(&Vector3::new(0.0, 0.0, -2.0));
+        .translate_by(&Vector3::new(0.0, 0.0, 2.0));
 
     let mut window_closed = false;
     let mut recreate_swapchain = false;
@@ -235,7 +235,7 @@ fn main() {
             }
         });
 
-        camera_controller.update(&mut camera);
+        camera_controller.update(&mut camera, dt);
     }
 }
 

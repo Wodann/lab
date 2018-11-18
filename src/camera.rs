@@ -36,17 +36,17 @@ impl Camera {
     }
 
     pub fn roll_by(&mut self, roll: f32) -> &mut Self {
-        self.transform.append_rotation_mut(&UnitQuaternion::from_euler_angles(roll, 0.0, 0.0));
+        self.transform.append_rotation_mut(&UnitQuaternion::from_axis_angle(&Vector3::z_axis(), roll));
         self
     }
 
     pub fn pitch_by(&mut self, pitch: f32) -> &mut Self {
-        self.transform.append_rotation_mut(&UnitQuaternion::from_euler_angles(0.0, pitch, 0.0));
+        self.transform.append_rotation_mut(&UnitQuaternion::from_axis_angle(&Vector3::x_axis(), pitch));
         self
     }
 
     pub fn yaw_by(&mut self, yaw: f32) -> &mut Self {
-        self.transform.append_rotation_mut(&UnitQuaternion::from_euler_angles(0.0, 0.0, yaw));
+        self.transform.append_rotation_mut(&UnitQuaternion::from_axis_angle(&Vector3::y_axis(), yaw));
         self
     }
 
@@ -57,6 +57,32 @@ impl Camera {
 
     pub fn translate_by(&mut self, translation: &Vector3<f32>) -> &mut Self {
         self.transform.append_translation_mut(&Translation3::from(*translation));
+        self
+    }
+
+    pub fn local_roll_by(&mut self, roll: f32) -> &mut Self {
+        self.transform.append_rotation_wrt_center_mut(&UnitQuaternion::from_axis_angle(&Vector3::z_axis(), roll));
+        self
+    }
+
+    pub fn local_pitch_by(&mut self, pitch: f32) -> &mut Self {
+        self.transform.append_rotation_wrt_center_mut(&UnitQuaternion::from_axis_angle(&Vector3::x_axis(), pitch));
+        self
+    }
+
+    pub fn local_yaw_by(&mut self, yaw: f32) -> &mut Self {
+        self.transform.append_rotation_wrt_center_mut(&UnitQuaternion::from_axis_angle(&Vector3::y_axis(), yaw));
+        self
+    }
+
+    pub fn local_rotate_by(&mut self, rotation: &UnitQuaternion<f32>) -> &mut Self {
+        self.transform.append_rotation_wrt_center_mut(&rotation);
+        self
+    }
+
+    pub fn local_translate_by(&mut self, translation: &Vector3<f32>) -> &mut Self {
+        let local_translation = self.transform.rotation * *translation;
+        self.transform.append_translation_mut(&Translation3::from(local_translation));
         self
     }
 

@@ -12,7 +12,7 @@ impl Frustum {
         Frustum {
             transform,
             projection,
-            view_projection: projection * transform.to_homogeneous()
+            view_projection: projection * transform.inverse().to_homogeneous()
         }
     }
 }
