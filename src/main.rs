@@ -23,13 +23,15 @@ use vulkano::sync;
 use vulkano_win::VkSurfaceBuild;
 use winit::{EventsLoop, Window, WindowBuilder, Event, WindowEvent};
 
-use std::sync::{Arc, mpsc};
+use std::sync::Arc;
 use std::time::Instant;
 
 use camera::Camera;
-use input_handler::{ElementState, InputEvent, InputEventDesc, InputHandler, KeyboardInput, ModifiersState, MouseButton, MouseInput, VirtualKeyCode};
+use camera_controller::CameraController;
+use input_handler::{InputHandler, KeyboardInput, MouseInput};
 
 mod camera;
+mod camera_controller;
 mod frustum;
 mod input_handler;
 mod transform;
@@ -47,29 +49,8 @@ fn main() {
     let surface = WindowBuilder::new().build_vk_surface(&event_loop, instance.clone()).unwrap();
     let window = surface.window();
 
-    let (tx, rx) = mpsc::channel();
-
     let mut input_handler = InputHandler::new();
-    input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
-        ElementState::Pressed,
-        VirtualKeyCode::W,
-        ModifiersState::default()
-    )), tx.clone());
-    input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
-        ElementState::Released,
-        VirtualKeyCode::A,
-        ModifiersState::default()
-    )), tx.clone());
-    input_handler.subscribe_to_input(InputEventDesc::MouseInput(MouseInput::new(
-        ElementState::Pressed,
-        MouseButton::Left,
-        ModifiersState::default()
-    )), tx.clone());
-    input_handler.subscribe_to_input(InputEventDesc::MouseInput(MouseInput::new(
-        ElementState::Released,
-        MouseButton::Left,
-        ModifiersState::default()
-    )), tx.clone());
+    let mut camera_controller = CameraController::new(&mut input_handler);
 
     let queue_family = physical.queue_families().find(|&q| {
         q.supports_graphics() && surface.is_supported(q).unwrap_or(false)
@@ -198,7 +179,6 @@ fn main() {
             dimensions[0] as f32 / dimensions[1] as f32
         };
 
-        camera.yaw_by(dt * 0.5);
         let frustum = camera.frustum(aspect_ratio);
 
         let push_constants = vs::ty::PushConstants {
@@ -255,29 +235,7 @@ fn main() {
             }
         });
 
-        if let Ok(event) = rx.try_recv() {
-            match event {
-                InputEvent::KeyboardInput(KeyboardInput { state, key, ..}) => {
-                    println!("{:?} was {}", key, {
-                        if state == ElementState::Pressed {
-                            "pressed"
-                        } else {
-                            "released"
-                        }
-                    });
-                },
-                InputEvent::MouseInput(MouseInput { state, button, .. }) => {
-                    println!("{:?} was {}", button, {
-                        if state == ElementState::Pressed {
-                            "pressed"
-                        } else {
-                            "released"
-                        }
-                    });
-                },
-                _ => ()
-            }
-        }
+        camera_controller.update(&mut camera);
     }
 }
 
