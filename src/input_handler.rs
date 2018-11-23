@@ -24,22 +24,72 @@ pub struct MouseInput {
 }
 
 impl KeyboardInput {
-    pub fn new(state: ElementState, key: VirtualKeyCode, modifiers: ModifiersState) -> KeyboardInput {
+    pub fn new(state: ElementState, key: VirtualKeyCode) -> KeyboardInput {
         KeyboardInput {
             state,
             key,
-            modifiers
+            modifiers: ModifiersState::default()
         }
+    }
+
+    pub fn set_modifiers(mut self, modifiers: ModifiersState) -> Self {
+        self.modifiers = modifiers;
+        self
+    }
+
+    pub fn set_alt(mut self, enabled: bool) -> Self {
+        self.modifiers.alt = enabled;
+        self
+    }
+
+    pub fn set_ctrl(mut self, enabled: bool) -> Self {
+        self.modifiers.ctrl = enabled;
+        self
+    }
+
+    pub fn set_logo(mut self, enabled: bool) -> Self {
+        self.modifiers.logo = enabled;
+        self
+    }
+
+    pub fn set_shift(mut self, enabled: bool) -> Self {
+        self.modifiers.shift = enabled;
+        self
     }
 }
 
 impl MouseInput {
-    pub fn new(state: ElementState, button: MouseButton, modifiers: ModifiersState) -> MouseInput {
+    pub fn new(state: ElementState, button: MouseButton) -> MouseInput {
         MouseInput {
             state,
             button,
-            modifiers
+            modifiers: ModifiersState::default()
         }
+    }
+
+    pub fn set_modifiers(mut self, modifiers: ModifiersState) -> Self {
+        self.modifiers = modifiers;
+        self
+    }
+
+    pub fn set_alt(mut self, enabled: bool) -> Self {
+        self.modifiers.alt = enabled;
+        self
+    }
+
+    pub fn set_ctrl(mut self, enabled: bool) -> Self {
+        self.modifiers.ctrl = enabled;
+        self
+    }
+
+    pub fn set_logo(mut self, enabled: bool) -> Self {
+        self.modifiers.logo = enabled;
+        self
+    }
+
+    pub fn set_shift(mut self, enabled: bool) -> Self {
+        self.modifiers.shift = enabled;
+        self
     }
 }
 

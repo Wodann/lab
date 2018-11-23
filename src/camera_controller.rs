@@ -2,10 +2,10 @@ extern crate nalgebra_glm as glm;
 
 use std::sync::mpsc;
 
-use nalgebra::{UnitQuaternion, Vector2, Vector3};
+use nalgebra::{Vector2, Vector3};
 
 use camera::Camera;
-use input_handler::{ElementState, InputEvent, InputEventDesc, InputHandler, KeyboardInput, ModifiersState, MouseButton, MouseInput, VirtualKeyCode};
+use input_handler::{ElementState, InputEvent, InputEventDesc, InputHandler, KeyboardInput, MouseButton, MouseInput, VirtualKeyCode};
 
 pub struct CameraController {
     input_receiver: mpsc::Receiver<InputEvent>,
@@ -20,53 +20,43 @@ impl CameraController {
 
         input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
             ElementState::Pressed,
-            VirtualKeyCode::A,
-            ModifiersState::default()
+            VirtualKeyCode::A
         )), tx.clone());
         input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
             ElementState::Released,
-            VirtualKeyCode::A,
-            ModifiersState::default()
+            VirtualKeyCode::A
         )), tx.clone());
         input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
             ElementState::Pressed,
-            VirtualKeyCode::D,
-            ModifiersState::default()
+            VirtualKeyCode::D
         )), tx.clone());
         input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
             ElementState::Released,
-            VirtualKeyCode::D,
-            ModifiersState::default()
+            VirtualKeyCode::D
         )), tx.clone());
         input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
             ElementState::Pressed,
-            VirtualKeyCode::S,
-            ModifiersState::default()
+            VirtualKeyCode::S
         )), tx.clone());
         input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
             ElementState::Released,
-            VirtualKeyCode::S,
-            ModifiersState::default()
+            VirtualKeyCode::S
         )), tx.clone());
         input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
             ElementState::Pressed,
-            VirtualKeyCode::W,
-            ModifiersState::default()
+            VirtualKeyCode::W
         )), tx.clone());
         input_handler.subscribe_to_input(InputEventDesc::KeyboardInput(KeyboardInput::new(
             ElementState::Released,
-            VirtualKeyCode::W,
-            ModifiersState::default()
+            VirtualKeyCode::W
         )), tx.clone());
         input_handler.subscribe_to_input(InputEventDesc::MouseInput(MouseInput::new(
             ElementState::Pressed,
-            MouseButton::Left,
-            ModifiersState::default()
+            MouseButton::Left
         )), tx.clone());
         input_handler.subscribe_to_input(InputEventDesc::MouseInput(MouseInput::new(
             ElementState::Released,
-            MouseButton::Left,
-            ModifiersState::default()
+            MouseButton::Left
         )), tx.clone());
         input_handler.subscribe_to_input(InputEventDesc::MouseMoved, tx.clone());
 

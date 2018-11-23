@@ -225,11 +225,11 @@ fn main() {
                 },
                 Event::WindowEvent { event: WindowEvent::KeyboardInput { input, .. }, .. } => {
                     if let Some(key) = input.virtual_keycode {
-                        input_handler.handle_keyboard_input(KeyboardInput::new(input.state, key, input.modifiers));
+                        input_handler.handle_keyboard_input(KeyboardInput::new(input.state, key).set_modifiers(input.modifiers));
                     }
                 }
                 Event::WindowEvent { event: WindowEvent::MouseInput { state, button, modifiers, .. }, .. } => {
-                    input_handler.handle_mouse_input(MouseInput::new(state, button, modifiers));
+                    input_handler.handle_mouse_input(MouseInput::new(state, button).set_modifiers(modifiers));
                 },
                 _ => ()
             }
